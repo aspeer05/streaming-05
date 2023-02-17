@@ -21,4 +21,4 @@ I have included the code to open the RabbitMQ console.  However, I am not able t
 
 # Producer Terminal Output
 
-![Producer](Screenshot 2023-02-13 181803.jpg)
+![Producer](Producer_Terminal.jpg)
