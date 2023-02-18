@@ -1,71 +1,65 @@
-"""
-    Amber Speer
-    Feb 17, 2023
-
-    This program listens for work messages from bbqproducer contiously. 
-    Start multiple versions to add more workers.  
-
-
-"""
-
 import pika
 import sys
 import time
 from collections import deque
 
-# limit to the 5 most recent readings
-# At one reading every 1/2 minute, the smoker deque max length is 5 (2.5 min * 1 reading/0.5 min)
+# limited to 5 items (the 5 most recent readings)
 smoker_deque = deque(maxlen=5)
-
 # limited to 20 items (the 20 most recent readings)
-# At one reading every 1/2 minute, the smoker deque max length is 5 (2.5 min * 1 reading/0.5 min)
 foodA_deque = deque(maxlen=20)
-
 # limited to 20 items (the 20 most recent readings)
-# At one reading every 1/2 minute, the smoker deque max length is 5 (2.5 min * 1 reading/0.5 min)
 foodB_deque = deque(maxlen=20)
 
-# define a callback function to be called when a message is received about Smoker temperature
+# define a callback function to be called when a message is received
 def smoker_callback(ch, method, properties, body):
-    """ Define behavior on getting a message about Smoker temp."""
-    # decode the binary message body to a string and seperate the temp from the timestamp
-    message = body.decode().split(",")
-    # Define a list that start with 0 to store the smoker temps
+    """ Define behavior on getting a message about the smoker temperature."""
+    #define a list to place smoker temps initializing with 0
     smokertemp = ['0']
-    # Put temps in the smokertemp variable as floats
+    #seperate the temp from the dat/time by using split
+    message = body.decode().split(",")
+    #assign the temp to a variable making it a float
     smokertemp[0] = round(float(message[-1]),2)
-     # Add the temp to the smoker temp deque
+    # add the temp to the deque
     smoker_deque.append(smokertemp[0])
+    #check to see that the deque has 5 items before analyzing
     if len(smoker_deque) == 5:
+        # read rightmost item in deque and subtract from leftmost item in deque
+        #assign difference to a variable as a float rounded to 2
         Smktempcheck = round(float(smoker_deque[-1]-smoker_deque[0]),2)
         #if the temp has changed by 15 degress then an alert is sent
         if Smktempcheck < -15:
             print("Current smoker temp is:", smokertemp[0],";", "Smoker temp change in last 2.5 minutes is:", Smktempcheck)
-            print("Smoker Alert!")
-        # Let the user know the changes
+            print("smoker alert!")
+        #Show work in progress, letting the user know the changes
         else:
             print("Current smoker temp is:", smokertemp[0],";", "Smoker temp change in last 2.5 minutes is:", Smktempcheck)
+    else:
+        #if the deque has less than 5 items the current temp is printed
+        print("Current smoker temp is:", smokertemp[0])
+    # acknowledge the message was received and processed 
+    # (now it can be deleted from the queue)
+    ch.basic_ack(delivery_tag=method.delivery_tag)
 
-# define a callback function to be called when a message is received about FoodA temperature
 def foodA_callback(ch, method, properties, body):
-    """ Define behavior on getting a message about FoodA temp."""
-    # Define a list that start with 0 to store the FoodA temps
+    """ Define behavior on getting a message about FoodA temperature."""
+    #define a list to place food A temps initializing with 0
     foodatemp = ['0']
-    # decode the binary message body to a string and seperate the temp from the timestamp
+    #seperate the temp from the dat/time by using split
     message = body.decode().split(",")    
-    # Put temps in the foodatemp variable as floats
+    #assign the temp to a variable making it a float
     foodatemp[0] = round(float(message[-1]),2)
-    # Add the temp to the foodA temp deque
+    # add the temp to the deque
     foodA_deque.append(foodatemp[0])
-    
     #check to see that the deque has 5 items before analyzing
     if len(foodA_deque) == 20:
+        # read rightmost item in deque and subtract from leftmost item in deque
+        #assign difference to a variable as a float rounded to 2
         foodatempcheck = round(float(foodA_deque[-1]-foodA_deque[0]),2)
         #if the temp has changed less than 1 degree then an alert is sent
         if foodatempcheck < 1:
             print("Current Food A temp is:", foodatemp[0],";", "Food A temp change in last 10 minutes is:", foodatempcheck)
-            print("Alert- stall on Food A!")
-        # Let the user know the changes
+            print("food stall on food A!")
+        #Show work in progress, letting the user know the changes
         else:
             print("Current Food A temp is:", foodatemp[0],";","Food A temp change in last 10 minutes is:", foodatempcheck)
     else:
@@ -75,26 +69,26 @@ def foodA_callback(ch, method, properties, body):
     # (now it can be deleted from the queue)
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
-# define a callback function to be called when a message is received about FoodB temperature
 def foodB_callback(ch, method, properties, body):
-    """ Define behavior on getting a message about FoodB temp."""
-        # Define a list that start with 0 to store the FoodB temps
+    """ Define behavior on getting a message about FoodB temperature."""
+    #define a list to place food B temps initializing with 0
     foodbtemp = ['0']
-    # decode the binary message body to a string and seperate the temp from the timestamp
+    #seperate the temp from the dat/time by using split
     message = body.decode().split(",")    
-    # Put temps in the foodbtemp variable as floats
+    #assign the temp to a variable making it a float
     foodbtemp[0] = round(float(message[-1]),2)
-    # Add the temp to the foodB temp deque
+    # add the temp to the deque
     foodB_deque.append(foodbtemp[0])
-    
     #check to see that the deque has 5 items before analyzing
     if len(foodB_deque) == 20:
+        # read rightmost item in deque and subtract from leftmost item in deque
+        #assign difference to a variable as a float rounded to 2
         foodbtempcheck = round(float(foodB_deque[-1]-foodB_deque[0]),2)
         #if the temp has changed less than 1 degree then an alert is sent
         if foodbtempcheck < 1:
             print("Current Food B temp is:", foodbtemp[0],";", "Food B temp change in last 10 minutes is:", foodbtempcheck)
-            print("Alert- stall on Food B!")
-        # Let the user know the changes
+            print("food stall on food B!")
+        #Show work in progress, letting the user know the changes
         else:
             print("Current Food B temp is:", foodbtemp[0],";","Food B temp change in last 10 minutes is:", foodbtempcheck)
     else:
@@ -124,9 +118,8 @@ def main(hn: str, queue1: str, queue2: str, queue3: str):
         sys.exit(1)
 
     try:
-        # use the connection to create communication channels for each consumer
+        # use the connection to create a communication channel
         channel = connection.channel()
-        
 
         # use the channel to declare a durable queue
         # a durable queue will survive a RabbitMQ server restart
@@ -144,7 +137,7 @@ def main(hn: str, queue1: str, queue2: str, queue3: str):
         # This helps prevent a worker from becoming overwhelmed
         # and improve the overall system performance. 
         # prefetch_count = Per consumer limit of unaknowledged messages      
-        channel.basic_qos(prefetch_count=1)
+        channel.basic_qos(prefetch_count=1) 
 
         # configure the channel to listen on a specific queue,  
         # use the callback function named callback,
@@ -171,12 +164,11 @@ def main(hn: str, queue1: str, queue2: str, queue3: str):
         sys.exit(0)
     finally:
         print("\nClosing connection. Goodbye.\n")
-        # delete the queues when completed
+        # delete the queues when complete so unprocessed messages are cleared
         channel.queue_delete(queue1)
         channel.queue_delete(queue2)
         channel.queue_delete(queue3)
         connection.close()
-
 
 # Standard Python idiom to indicate main program entry point
 # This allows us to import this module and use its functions
