@@ -1,13 +1,13 @@
 # streaming-05 (Creating a Producer)
 ### Amber Speer
-### Module 5 Assignment
-### Feb 13, 2023
+### Module 5 & 6 Assignments
+### Feb 13-18, 2023
 
 
 
 # Prerequisites
 
-This script require pika, sys, webbrowser, csv, and time.
+This script require pika, sys, webbrowser, csv, time, and deque.
 
 # How to run the code
 

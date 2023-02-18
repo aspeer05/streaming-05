@@ -108,7 +108,7 @@ def send_message(host: str):
                     FoodAstring = FoodAstring.encode()
                     # use the channel to publish a message to the queue
                     # every message passes through an exchange
-                    ch.basic_publish(exchange="", routing_key=foodaqueue, body=Astring)
+                    ch.basic_publish(exchange="", routing_key=foodaqueue, body=FoodAstring)
                     # print a message to the console for the user
                     print(f" [x] Sent {FoodAstring}")
                 except ValueError:
